@@ -1,0 +1,54 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users {
+  id serial [primary key]
+  username varchar(50) [not null, unique]
+  last_seen timestamp   [note: 'with timezone']
+  created_at timestamp  [not null, default: `now()`, note: 'with timezone']
+}
+
+Table topics {
+  id serial [primary key]
+  name varchar(30)  [not null, unique]
+  descdription varchar(500)
+  created_at timestamp  [not null, default: `now()`, note: 'with timezone']
+}
+
+Table posts {
+  id serial [primary key]
+  user_id integer
+  topic_id integer [not null]
+  title varchar(100) [not null]
+  url text
+  content text
+  created_at timestamp  [not null, default: `now()`, note: 'with timezone']
+}
+
+Ref: posts.topic_id > topics.id // many-to-one
+Ref: posts.user_id > users.id // many-to-one
+
+Table comments {
+  id serial [primary key]
+  user_id integer
+  post_id integer
+  parent_id integer
+  content text [not null]
+  created_at timestamp  [not null, default: `now()`, note: 'with timezone']
+}
+
+Ref: comments.post_id > posts.id // many-to-one
+Ref: comments.parent_id > comments.id // many-to-one
+
+Table votes {
+  id serial [primary key]
+  user_id integer
+  post_id integer
+  upvotes bigint
+  downvotes bigint
+  created_at timestamp  [not null, default: `now()`, note: 'with timezone']
+}
+
+Ref: votes.user_id > users.id // many-to-one
+Ref: votes.post_id > posts.id // many-to-one
+

@@ -18,7 +18,7 @@ Investigating, fixing and migrating a social news aggregator's relational databa
 
 ### Proposed New Schema
 
-> Full details are :point_right: [in here](./src/existing/). See summary below :point_down:
+> Full details are :point_right: [in here](./src/proposed/). See summary below :point_down:
 
 #### Guideline 1: Features and specifications that Udacious needs to support its website and admin interface :sunglasses: :nerd_face:
 
@@ -48,4 +48,4 @@ Investigating, fixing and migrating a social news aggregator's relational databa
 ### TODO: Migrate Existing Data To New Schema [`DEV / LOCAL`] :thumbsup:
 
 
-### TODO: Migrate Existing Data To New Schema [`PROD / LIVE`] :pray: :muscle: :crossed_fingers: :boom:
+### TODO: Migrate Existing Data To New Schema [`PROD / LIVE`] :crossed_fingers: :muscle:

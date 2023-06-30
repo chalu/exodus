@@ -1,0 +1,21 @@
+Table bad_posts {
+  id serial [primary key]
+  topic varchar(50)
+  username varchar(50)
+  title varchar(150)
+  url varchar(4000)
+  text_content text
+  upvotes text
+  downvotes text
+}
+
+Table bad_comments {
+  id serial [primary key]
+  username varchar(50)
+  post_id bigint
+  text_content text
+}
+
+Ref: bad_comments.post_id > bad_posts.id // many-to-one
+
+// https://dbdiagram.io/d/649ee3fa02bd1c4a5e4fe623

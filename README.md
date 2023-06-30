@@ -1,9 +1,9 @@
 # Udacious
 Investigating, fixing and migrating a social news aggregator's relational database.
 
-### Guideline 1: 
+### Create DDL For The New Schema
 
-#### Features and specifications that Udacious needs to support its website and admin interface
+#### Guideline 1: Features and specifications that Udacious needs to support its website and admin interface
 
 1.  Allow new users to register:
     -   Each username has to be unique
@@ -31,3 +31,21 @@ Investigating, fixing and migrating a social news aggregator's relational databa
     -   Hint: you can store the (up/down) value of the vote as the values 1 and -1 respectively.
     -   If the user who cast a vote gets deleted, then all their votes will remain, but will become dissociated from the user.
     -   If a post gets deleted, then all the votes for that post should be automatically deleted too.
+
+
+### Create DQL For The New Schema
+
+#### Guideline 1: Queries that Udacious needs to support its website and admin interface
+
+1.  List all users who haven’t logged in in the last year.
+2.  List all users who haven’t created any post.
+3.  Find a user by their username.
+4.  List all topics that don’t have any posts.
+5.  Find a topic by its name.
+6.  List the latest 20 posts for a given topic.
+7.  List the latest 20 posts made by a given user.
+8.  Find all posts that link to a specific URL, for moderation purposes. 
+9.  List all the top-level comments (those that don’t have a parent comment) for a given post.
+10.  List all the direct children of a parent comment.
+11.  List the latest 20 comments made by a given user.
+12.  Compute the score of a post, defined as the difference between the number of upvotes and the number of downvotes

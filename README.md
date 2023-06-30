@@ -5,6 +5,7 @@ Investigating, fixing and migrating a social news aggregator's relational databa
 
 
 ![ER disgram](./src/existing/udacious-existing-erd.png)
+![DB schema](./src/existing/udacious-existing-schema.png)
 
 1.  `bad_posts` is poorly structured to contain data that should ideally be in other tables and only then referenced from the `bad_posts` table. The way the username, upvotes and downvotes column is used is proof of this fact.
 2.  `bad_posts` has very little data constraints and validation where it should.  Since the url column is optional, the title and text_content need to be not null, at least conditionally.

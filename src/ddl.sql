@@ -48,4 +48,21 @@ ALTER TABLE "posts"
     ); 
 
 
+-- comments
+DROP TABLE IF EXISTS "comments";
+CREATE TABLE "comments" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INTEGER,
+  "post_id" INTEGER,
+  "parent_id" INTEGER,
+  "content" TEXT NOT NULL,
+  "created_at" TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP
+);
+
+ALTER TABLE "comments"
+	ADD FOREIGN KEY ("user_id") REFERENCES "users" ON DELETE SET NULL,
+    ADD FOREIGN KEY ("post_id") REFERENCES "posts" ON DELETE CASCADE,
+    ADD FOREIGN KEY ("parent_id") REFERENCES "comments" ON DELETE CASCADE;
+    
+
 

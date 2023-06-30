@@ -66,3 +66,22 @@ ALTER TABLE "comments"
     
 
 
+-- votes
+DROP TABLE IF EXISTS "votes";
+CREATE TABLE "votes" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INTEGER,
+  "post_id" INTEGER,
+  upvotes BIGINT,
+  downvotes BIGINT,
+  "created_at" TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP
+);
+
+-- will the unique constraint work for subsequently
+-- deleted users? Because there'd already be a user_id 
+-- with a null value which will be unique for the given post_id.
+ALTER TABLE "votes"
+	ADD UNIQUE ("user_id", "post_id"),
+	ADD FOREIGN KEY ("user_id") REFERENCES "users" ON DELETE SET NULL,
+    ADD FOREIGN KEY ("post_id") REFERENCES "posts" ON DELETE CASCADE;
+

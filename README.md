@@ -4,7 +4,7 @@ Investigating, fixing and migrating a social news aggregator's relational databa
 ### Investigate Exisiting Schema :writing_hand:
 
 
-[![ER disgram](./src/existing/udacious-old-erd.png)](https://dbdiagram.io/d/649ee3fa02bd1c4a5e4fe623)
+![ER disgram](./src/existing/udacious-existing-erd.png)
 
 1.  `bad_posts` is poorly structured to contain data that should ideally be in other tables and only then referenced from the `bad_posts` table. The way the username, upvotes and downvotes column is used is proof of this fact.
 2.  `bad_posts` has very little data constraints and validation where it should.  Since the url column is optional, the title and text_content need to be not null, at least conditionally.
@@ -18,7 +18,9 @@ Investigating, fixing and migrating a social news aggregator's relational databa
 
 ### Proposed New Schema
 
-> Full details are :point_right: [in here](./src/proposed/). See summary below :point_down:
+![ER disgram](./src/proposed/udacious-proposed-erd.png)
+
+> Summarized below :point_down: Full details are [:point_right: in here](./src/proposed/) 
 
 #### Guideline 1: Features and specifications that Udacious needs to support its website and admin interface :sunglasses: :nerd_face:
 

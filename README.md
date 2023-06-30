@@ -1,6 +1,22 @@
 # Udacious
 Investigating, fixing and migrating a social news aggregator's relational database.
 
+### Investigate Exisiting Schema
+
+
+[![ER disgram](./src/existing/udacious-old-erd.png)](https://dbdiagram.io/d/649ee3fa02bd1c4a5e4fe623)
+
+1.  `bad_posts` is poorly structured to contain data that should ideally be in other tables and only then referenced from the `bad_posts` table. The way the username, upvotes and downvotes column is used is proof of this fact.
+2.  `bad_posts` has very little data constraints and validation where it should.  Since the url column is optional, the title and text_content need to be not null, at least conditionally.
+3.  The upvotes and downvotes columns in `bad_posts` being text will make filtering or aggregating on them very difficult .
+4.  `bad_comments` seems to allow empty comments since the text_content column is not constrained with no null.
+5.  Intuitively, comments are usually threaded, but `bad_comments` does not seem to indicate any support for that,
+6.  Placing the actual text username of the author into `bad_posts` or `bad_comments` means the data can easily become inconsistent. At least it will be a nightmare to maintain data consistency and data integrity in the face of change. Ideally, username should only be updatable in a single place.
+
+> **TODO :** Document how much data (row number) `bad_post` and `bad_comments` has.
+
+
+
 ### Create DDL For The New Schema
 
 #### Guideline 1: Features and specifications that Udacious needs to support its website and admin interface

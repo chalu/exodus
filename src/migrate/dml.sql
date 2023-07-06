@@ -2,6 +2,7 @@
 -- DML - Migrate the data into the new schema
 -- ====================================================
 
--- 1. migrate topics
+-- 0. remove all data in destination tables and reset serial/sequential IDs
+TRUNCATE TABLE "posts", "topics", "users", "comments", "votes"
+RESTART IDENTITY;
 
-INSERT INTO "topics" ("name")  SELECT DISTINCT topic FROM "bad_posts";

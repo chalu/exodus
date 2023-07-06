@@ -66,3 +66,44 @@ JOIN topics tpc ON tpc.id = pts.topic_id
 ORDER BY pts.id ASC
 LIMIT 10;
 
+
+-- 4. migrate comments
+WITH comments_data AS (
+  SELECT bp.id AS post_id,
+         usr.id AS user_id,
+  		 bc.id AS comment_id,
+         bc.text_content AS text_content
+  FROM bad_posts bp
+  JOIN bad_comments bc ON bp.id = bc.post_id
+  JOIN users usr ON bc.username = usr.username
+  ORDER BY comment_id ASC
+)
+INSERT INTO "comments" ("user_id", "post_id", "content")
+SELECT user_id, post_id, text_content
+FROM comments_data;
+
+-- To compare and validate "comments" migration, run:
+-- this query on the old schema/data
+SELECT bc.id, 
+       bc.post_id, 
+       bc.username AS "user", 
+       LEFT(bp.title, 50) AS post_title, 
+       LEFT(bc.text_content, 50) AS "comment"
+FROM bad_comments bc
+JOIN bad_posts bp ON bp.id = bc.post_id
+ORDER BY id LIMIT 10;
+
+-- vs this query on the new schema/data
+
+SELECT cmts.id, 
+       cmts.post_id, 
+       usr.username AS "user", 
+       LEFT(pts.title, 50) AS post_title,
+       LEFT(cmts.content, 50) AS "comment"
+FROM posts pts
+JOIN "comments" cmts ON pts.id = cmts.post_id
+JOIN users usr ON usr.id = cmts.user_id
+ORDER BY cmts.id ASC
+LIMIT 10;
+
+

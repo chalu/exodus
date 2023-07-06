@@ -6,3 +6,7 @@
 TRUNCATE TABLE "posts", "topics", "users", "comments", "votes"
 RESTART IDENTITY;
 
+-- 1. migrate topics
+-- TODO maybe change topics to title case and replace underscores with space
+INSERT INTO "topics" ("name") SELECT DISTINCT topic FROM "bad_posts";
+

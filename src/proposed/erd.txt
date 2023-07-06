@@ -44,8 +44,7 @@ Table votes {
   id serial [primary key]
   user_id integer
   post_id integer
-  upvotes bigint
-  downvotes bigint
+  vote smallint
   created_at timestamp  [not null, default: `now()`, note: 'with timezone']
 }
 

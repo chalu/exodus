@@ -4,7 +4,7 @@ Investigating, fixing and migrating a social news aggregator's relational databa
 ### Investigate Exisiting Schema :writing_hand:
 
 
-![ER disgram](./src/existing/udacious-existing-erd.png)
+![ER disgram](./src/existing/udacious-existing-erd-annotated.png)
 ![DB schema](./src/existing/udacious-existing-schema.png)
 
 1.  `bad_posts` is poorly structured to contain data that should ideally be in other tables and only then referenced from the `bad_posts` table. The way the username, upvotes and downvotes column is used is proof of this fact.

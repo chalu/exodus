@@ -107,3 +107,47 @@ ORDER BY cmts.id ASC
 LIMIT 10;
 
 
+-- 5. migrate votes 
+-- PS: hints to improve the approach and perfoemance of migrating votes are totally welcome
+-- this alone took me 2 days ::smile
+WITH upvoters AS (
+  SELECT DISTINCT unnest(string_to_array(upvotes, ',')) AS voter FROM bad_posts
+),
+downvoters AS (
+  SELECT DISTINCT unnest(string_to_array(downvotes, ',')) AS voter, "id" AS post_id FROM bad_posts
+),
+upvotes_on_posts AS (
+  SELECT bp.id AS bp_id, pst.id AS post_id, pst.title AS post, usr.id AS user_id, usr.username 
+  FROM users usr
+  JOIN bad_posts bp 
+    ON usr.username IN (SELECT voter FROM upvoters)
+    -- AND usr.username NOT IN (SELECT voter FROM downvoters)
+  JOIN posts pst 
+    ON pst.title = LEFT(bp.title, 100)
+  -- use below to filter out any record of downvotes
+  -- we want upvote records only
+  WHERE bp.id NOT IN (SELECT post_id FROM downvoters)
+  ORDER BY bp_id
+)
+INSERT INTO "votes" ("user_id", "post_id", "vote")
+  SELECT user_id, post_id, '1'::numeric as vote FROM upvotes_on_posts;
+-- above query inserted 4,991,800 rows in 1 min 42 secs
+  
+WITH downvoters AS (
+  SELECT DISTINCT unnest(string_to_array(downvotes, ',')) AS voter, "id" AS post_id FROM bad_posts
+),
+downvotes_on_posts AS (
+  SELECT bp.id AS bp_id, pst.id AS post_id, pst.title AS post, usr.id AS user_id, usr.username 
+  FROM users usr
+  JOIN bad_posts bp 
+    ON usr.username IN (SELECT voter FROM downvoters)
+  JOIN posts pst ON pst.title = LEFT(bp.title, 100)
+  -- use below to filter out any existing vote on a specifc post by a given user
+  WHERE (SELECT COUNT("id") FROM votes WHERE user_id = usr.id AND post_id = pst.id LIMIT 1) = 0
+  ORDER BY bp_id
+)
+INSERT INTO "votes" ("user_id", "post_id", "vote")
+  SELECT user_id, post_id, '-1'::numeric as vote FROM downvotes_on_posts;
+
+-- above query inserted 50,008,200 rows in 20 mins 9 secs
+-- making a total of 55,000,000 rows in the votes table

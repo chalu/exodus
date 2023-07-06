@@ -1,11 +1,11 @@
-# Udacious
-Investigating, fixing and migrating a social news aggregator's relational database.
-
-### Investigate Exisiting Schema :writing_hand:
+# Exodus
+Investigate, fix and migrate a social news aggregator's relational database :writing_hand:
 
 
 ![ER disgram](./src/existing/udacious-existing-erd-annotated.png)
 ![DB schema](./src/existing/udacious-existing-schema.png)
+
+> **PS :** `bad_post` has 50K records while `bad_comments` has 100K records. 
 
 1.  `bad_posts` is poorly structured to contain data that should ideally be in other tables and only then referenced from the `bad_posts` table. The way the username, upvotes and downvotes column is used is proof of this fact.
 2.  `bad_posts` has very little data constraints and validation where it should.  Since the url column is optional, the title and text_content need to be not null, at least conditionally.
@@ -13,8 +13,6 @@ Investigating, fixing and migrating a social news aggregator's relational databa
 4.  `bad_comments` seems to allow empty comments since the text_content column is not constrained with no null.
 5.  Intuitively, comments are usually threaded, but `bad_comments` does not seem to indicate any support for that,
 6.  Placing the actual text username of the author into `bad_posts` or `bad_comments` means the data can easily become inconsistent. At least it will be a nightmare to maintain data consistency and data integrity in the face of change. Ideally, username should only be updatable in a single place.
-
-> **TODO :** Document how much data (row number) `bad_post` and `bad_comments` has.
 
 
 ### Proposed New Schema
@@ -49,6 +47,10 @@ Investigating, fixing and migrating a social news aggregator's relational databa
 
 
 ### TODO: Migrate Existing Data To New Schema [`DEV / LOCAL`] :thumbsup:
+
+> There are lots of duplicate users amd they're different places e.g `SELECT COUNT(users) FROM (SELECT username AS users FROM bad_posts) t1` shows 50K users **vs**
+`SELECT COUNT(users) FROM (SELECT DISTINCT username AS users FROM bad_posts) t1` shows 100 distinct users who've created posts.
+Also, querying for upvotes with `SELECT unnest(string_to_array(upvotes, ',')) AS users` **vs** `SELECT DISTINCT unnest(string_to_array(upvotes, ',')) AS users` results in 249.7k vs 1.1k users while a smilimar query for downvotes results in 249.9k vs 1.1k users. Comsequently, total users (across `username`, `upvotes`, and `downvotes` in the `bad_posts` table and `username` in the `bad_comments` table) sits at ~11.0k
 
 
 ### TODO: Migrate Existing Data To New Schema [`PROD / LIVE`] :crossed_fingers: :muscle:

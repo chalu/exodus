@@ -68,8 +68,20 @@ ORDER BY cmt.created_at DESC
 LIMIT 20;
 
 -- 2.i Compute the score of a post, defined as the difference between the number of upvotes and the number of downvotes
-SELECT v.id,
-	   v.upvotes,
-       v.downvotes,
-       COUNT(v.upvotes) - COUNT(abs(v.downvotes)) as score
-FROM votes v;
+WITH votes_data AS (
+  SELECT v.id,
+         v.post_id,
+         v.vote,
+         CASE
+	       WHEN v.vote = 1 THEN 'upvote' ELSE 'invalid'
+	     END AS upvotes,
+	     CASE
+	       WHEN v.vote = -1 THEN 'downvote' ELSE 'invalid'
+	     END AS downvotes
+  FROM votes v
+)
+SELECT pst.title AS post, COUNT(vd.upvotes) - COUNT(vd.downvotes) as score
+FROM posts pst
+JOIN votes_data vd ON pst.id = vd.post_id
+GROUP BY pst.title
+ORDER BY score DESC;

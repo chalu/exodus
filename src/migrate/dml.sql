@@ -3,23 +3,19 @@
 -- ====================================================
 
 -- 0. remove all data in destination tables and reset serial/sequential IDs
-TRUNCATE TABLE "posts", "topics", "users", "comments", "votes"
-RESTART IDENTITY;
+TRUNCATE TABLE "posts", "topics", "users", "comments", "votes" RESTART IDENTITY;
 
 -- 1. migrate topics
 -- TODO maybe change topics to title case and replace underscores with space
 INSERT INTO "topics" ("name") SELECT DISTINCT topic FROM "bad_posts";
 
-
 -- 2. migrate users
---
 -- PS: There are lots of duplicate usernames e.g
 -- SELECT COUNT(users) FROM (SELECT username AS users FROM bad_posts) t1 => 50000 users 
 -- vs
 -- SELECT COUNT(users) FROM (SELECT DISTINCT username AS users FROM bad_posts) t1 => 100 users
--- Also, 
--- SELECT unnest(string_to_array(upvotes, ',')) AS users VS SELECT DISTINCT unnest(string_to_array(upvotes, ',')) AS users
--- results in 249799 vs 1100 users while a smilimar query for downvotes results in 249911 vs 1100 users.
+-- Also, SELECT unnest(string_to_array(upvotes, ',')) AS users VS SELECT DISTINCT unnest(string_to_array(upvotes, ',')) AS users
+-- results in 249799 vs 1100 users while a smilimar query for downvotes results in 249911 vs 1100 users for downvotes.
 -- Comsequently, total users (across username, upvotes, downvotes in bad_posts and username in bad_comments)
 -- sits at 11077
 WITH allusers AS (
@@ -31,9 +27,6 @@ WITH allusers AS (
 INSERT INTO "users" ("username") SELECT DISTINCT username FROM allusers;
 
 -- 3. migrate posts
---
--- PS: titles in the source table are 150 chars long
--- but this destination table only takes titles of 100 chars
 WITH posts_data AS (
   SELECT bp.id AS post_id,
          usr.id AS user_id, 
@@ -65,7 +58,6 @@ JOIN users usr ON usr.id = pts.user_id
 JOIN topics tpc ON tpc.id = pts.topic_id
 ORDER BY pts.id ASC
 LIMIT 10;
-
 
 -- 4. migrate comments
 WITH comments_data AS (
@@ -108,8 +100,6 @@ LIMIT 10;
 
 
 -- 5. migrate votes 
--- PS: hints to improve the approach and perfoemance of migrating votes are totally welcome
--- this alone took me 2 days ::smile
 WITH upvoters AS (
   SELECT DISTINCT unnest(string_to_array(upvotes, ',')) AS voter FROM bad_posts
 ),
@@ -121,13 +111,10 @@ upvotes_on_posts AS (
   FROM users usr
   JOIN bad_posts bp 
     ON usr.username IN (SELECT voter FROM upvoters)
-    -- AND usr.username NOT IN (SELECT voter FROM downvoters)
+    -- below will filter out downvotes
+    AND bp.id NOT IN (SELECT post_id FROM downvoters)
   JOIN posts pst 
     ON pst.title = LEFT(bp.title, 100)
-  -- use below to filter out any record of downvotes
-  -- we want upvote records only
-  WHERE bp.id NOT IN (SELECT post_id FROM downvoters)
-  ORDER BY bp_id
 )
 INSERT INTO "votes" ("user_id", "post_id", "vote")
   SELECT user_id, post_id, '1'::numeric as vote FROM upvotes_on_posts;
@@ -138,16 +125,14 @@ WITH downvoters AS (
 ),
 downvotes_on_posts AS (
   SELECT bp.id AS bp_id, pst.id AS post_id, pst.title AS post, usr.id AS user_id, usr.username 
-  FROM users usr
-  JOIN bad_posts bp 
-    ON usr.username IN (SELECT voter FROM downvoters)
+  FROM bad_posts bp
   JOIN posts pst ON pst.title = LEFT(bp.title, 100)
-  -- use below to filter out any existing vote on a specifc post by a given user
-  WHERE (SELECT COUNT("id") FROM votes WHERE user_id = usr.id AND post_id = pst.id LIMIT 1) = 0
-  ORDER BY bp_id
+  JOIN users usr  
+    ON usr.username IN (SELECT voter FROM downvoters)
+    -- filter out existing vote on a specifc post by a given user
+    AND (SELECT COUNT("id") FROM votes WHERE user_id = usr.id AND post_id = pst.id LIMIT 1) = 0
 )
 INSERT INTO "votes" ("user_id", "post_id", "vote")
   SELECT user_id, post_id, '-1'::numeric as vote FROM downvotes_on_posts;
-
--- above query inserted 50,008,200 rows in 20 mins 9 secs
+-- above query inserted 50,008,200 rows in 23 mins
 -- making a total of 55,000,000 rows in the votes table

@@ -14,7 +14,6 @@ CREATE TABLE "users" (
 ALTER TABLE "users" 
 	ADD CONSTRAINT "non_empty_username" CHECK (LENGTH(TRIM("username")) > 0);
 
-
 -- topics
 DROP TABLE IF EXISTS "topics";
 CREATE TABLE "topics" (
@@ -27,7 +26,6 @@ CREATE TABLE "topics" (
 ALTER TABLE "topics" 
 	ADD CONSTRAINT "non_empty_topicname" CHECK (LENGTH(TRIM("name")) > 0);
 
-
 -- posts
 DROP TABLE IF EXISTS "posts";
 CREATE TABLE "posts" (
@@ -37,12 +35,12 @@ CREATE TABLE "posts" (
   "title" VARCHAR(100) NOT NULL,
   "url" TEXT,
   "content" TEXT,
-  "created_at" TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP
+  "created_at" TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP 
 );
 
 ALTER TABLE "posts" 
-	ADD FOReign KEY ("topic_id") references "topics" ON DELETE CASCADE,
-    ADD FOReign KEY ("user_id") references "users" ON DELETE SET NULL,
+	ADD FOREIGN KEY ("topic_id") references "topics" ON DELETE CASCADE,
+    ADD FOREIGN KEY ("user_id") references "users" ON DELETE SET NULL,
     ADD CONSTRAINT "non_empty_posttitle" CHECK (LENGTH(TRIM("title")) > 0),
     ADD CONSTRAINT "post_cnt_or_url" CHECK (
       NOT (
@@ -50,6 +48,11 @@ ALTER TABLE "posts"
       	AND LENGTH(TRIM("content")) > 0
       )
     ); 
+    
+CREATE INDEX "find_posts_by_title" ON "posts" (
+  LOWER("title") VARCHAR_PATTERN_OPS
+);
+CREATE INDEX "find_posts_by_url" ON "posts" (url);
 
 
 -- comments
@@ -57,7 +60,7 @@ DROP TABLE IF EXISTS "comments";
 CREATE TABLE "comments" (
   "id" SERIAL PRIMARY KEY,
   "user_id" INTEGER,
-  "post_id" INTEGER,
+  "post_id" INTEGER NOT NULL,
   "parent_id" INTEGER,
   "content" TEXT NOT NULL,
   "created_at" TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP
@@ -68,24 +71,22 @@ ALTER TABLE "comments"
     ADD FOREIGN KEY ("post_id") REFERENCES "posts" ON DELETE CASCADE,
     ADD FOREIGN KEY ("parent_id") REFERENCES "comments" ON DELETE CASCADE;
     
-
+CREATE INDEX "find_parent_comments" ON "comments" (parent_id);
+    
 
 -- votes
 DROP TABLE IF EXISTS "votes";
 CREATE TABLE "votes" (
   "id" SERIAL PRIMARY KEY,
   "user_id" INTEGER,
-  "post_id" INTEGER,
-  upvotes BIGINT,
-  downvotes BIGINT,
+  "post_id" INTEGER NOT NULL,
+  "vote" SMALLINT,
   "created_at" TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP
 );
 
--- will the unique constraint work for subsequently
--- deleted users? Because there'd already be a user_id 
--- with a null value which will be unique for the given post_id.
 ALTER TABLE "votes"
 	ADD UNIQUE ("user_id", "post_id"),
 	ADD FOREIGN KEY ("user_id") REFERENCES "users" ON DELETE SET NULL,
     ADD FOREIGN KEY ("post_id") REFERENCES "posts" ON DELETE CASCADE;
 
+CREATE INDEX "find_votes_by_voter_on_post" ON "votes" (user_id, post_id);

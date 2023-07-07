@@ -15,8 +15,8 @@ INSERT INTO "topics" ("name") SELECT DISTINCT topic FROM "bad_posts";
 -- vs
 -- SELECT COUNT(users) FROM (SELECT DISTINCT username AS users FROM bad_posts) t1 => 100 users
 -- Also, SELECT unnest(string_to_array(upvotes, ',')) AS users VS SELECT DISTINCT unnest(string_to_array(upvotes, ',')) AS users
--- results in 249799 vs 1100 users while a smilimar query for downvotes results in 249911 vs 1100 users for downvotes.
--- Comsequently, total users (across username, upvotes, downvotes in bad_posts and username in bad_comments)
+-- results in 249799 vs 1100 users while a similar query for downvotes results in 249911 vs 1100 users for downvotes.
+-- Consequently, total users (across username, upvotes, downvotes in bad_posts and username in bad_comments)
 -- sits at 11077
 WITH allusers AS (
     SELECT username FROM bad_posts
@@ -129,7 +129,7 @@ downvotes_on_posts AS (
   JOIN posts pst ON pst.title = LEFT(bp.title, 100)
   JOIN users usr  
     ON usr.username IN (SELECT voter FROM downvoters)
-    -- filter out existing vote on a specifc post by a given user
+    -- filter out existing vote on a specific post by a given user
     AND (SELECT COUNT("id") FROM votes WHERE user_id = usr.id AND post_id = pst.id LIMIT 1) = 0
 )
 INSERT INTO "votes" ("user_id", "post_id", "vote")

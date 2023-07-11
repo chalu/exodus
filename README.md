@@ -46,9 +46,34 @@ Investigate, fix and migrate a social news aggregator's relational database :wri
 12.  Compute the score of a post, defined as the difference between the number of upvotes and the number of downvotes
 
 
-### TODO: Migrate Existing Data To New Schema [`DEV / LOCAL`] :thumbsup:
+### Migrate Existing Data To New Schema [`DEV / LOCAL`] :thumbsup:
 
-> There are lots of duplicate users amd they're different places e.g `SELECT COUNT(users) FROM (SELECT username AS users FROM bad_posts) t1` shows 50K users **vs**
+The DML for migrating data is in [src/migrate/dml.sql](./src/migrate/dml.sql), but below are the snippets for migrating `users` :
+
+```sql
+-- users
+DROP TABLE IF EXISTS "users";
+CREATE TABLE "users" (
+  "id" SERIAL PRIMARY KEY,
+  "username" VARCHAR(25) UNIQUE NOT NULL,
+  "last_seen" TIMESTAMP WITH TIME ZONE,
+  "created_at" TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP
+);
+
+ALTER TABLE "users" 
+	ADD CONSTRAINT "non_empty_username" CHECK (LENGTH(TRIM("username")) > 0);
+
+WITH allusers AS (
+    SELECT username FROM bad_posts
+    UNION SELECT unnest(string_to_array(upvotes, ',')) AS username FROM bad_posts
+    UNION SELECT unnest(string_to_array(downvotes, ',')) AS username FROM bad_posts
+    UNION SELECT username FROM bad_comments
+)
+INSERT INTO "users" ("username") SELECT DISTINCT username FROM allusers;
+
+```
+
+> There are lots of duplicate users in different places e.g `SELECT COUNT(users) FROM (SELECT username AS users FROM bad_posts) t1` shows 50K users **vs**
 `SELECT COUNT(users) FROM (SELECT DISTINCT username AS users FROM bad_posts) t1` shows 100 distinct users who've created posts.
 Also, querying for upvotes with `SELECT unnest(string_to_array(upvotes, ',')) AS users` **vs** `SELECT DISTINCT unnest(string_to_array(upvotes, ',')) AS users` results in 249.7k vs 1.1k users while a smilimar query for downvotes results in 249.9k vs 1.1k users. Comsequently, total users (across `username`, `upvotes`, and `downvotes` in the `bad_posts` table and `username` in the `bad_comments` table) sits at ~11.0k
 

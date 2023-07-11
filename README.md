@@ -77,5 +77,12 @@ INSERT INTO "users" ("username") SELECT DISTINCT username FROM allusers;
 `SELECT COUNT(users) FROM (SELECT DISTINCT username AS users FROM bad_posts) t1` shows 100 distinct users who've created posts.
 Also, querying for upvotes with `SELECT unnest(string_to_array(upvotes, ',')) AS users` **vs** `SELECT DISTINCT unnest(string_to_array(upvotes, ',')) AS users` results in 249.7k vs 1.1k users while a smilimar query for downvotes results in 249.9k vs 1.1k users. Comsequently, total users (across `username`, `upvotes`, and `downvotes` in the `bad_posts` table and `username` in the `bad_comments` table) sits at ~11.0k
 
+#### After Migrating Posts
+![Validate Posts](./src/migrate/validate-migrated-posts.png)
+<br>
+
+#### After Migrating Comments
+![Validate Comments](./src/migrate/validate-migrated-comments.png)
+
 
 ### TODO: Migrate Existing Data To New Schema [`PROD / LIVE`] :crossed_fingers: :muscle:
